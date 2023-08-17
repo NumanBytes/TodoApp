@@ -1,6 +1,6 @@
 import express from "express";
 import router from "./router/todo.js";
-import todoController from "./controller/todoController.js";
+// import todoController from "./controller/todoController.js";
 import connectDB from "./config/db.js";
 
 const app = express();

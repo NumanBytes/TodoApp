@@ -1,60 +1,63 @@
 import todosModel from "../model/todo.js";
-let getNextTodoId;
-async function getAllTodos(req, res) {
-  res.json(await todosModel.find());
-}
 
-function createTodo(req, res) {
-  const newTodo = {
-    id: getNextTodoId(), // implement to generate unique ID
-    title: req.body.title,
-    description: req.body.description,
-    completed: false
-  };
-  
-  todosModel.push(newTodo);  //Assuming todosModel is an array
-  res.status(201).json(newTodo);
-}
+const todoController = {
+  getall: async (req, res) => {
+    try {
+      const todo = await todosModel.find();
+      res.json(todo);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: "Server error" });
+    }
+  },
+  create: async (req, res) => {
+    try {
+      const todo = await todosModel.create({
+        title: req.body.title,
+        description: req.body.description,
+        completed: req.body.completed,
+      });
+      res.json(todo);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: "Server error" });
+    }
+  },
 
-function getTodoById(req, res) {
-  const todoId = parseInt(req.params.id);
-  const todo = todosModel.find((todo) => todo.id === todoId);
-  if (todo) {
-    res.json(todo);
-  } else {
-    res.status(404).json({ message: "Todo not found" });
-  }
-}
+  update: async (req, res) => {
+    try {
+      const todoId = await parseInt(req.params.id);
+      const updatedTodo = await todosModel.findByIdAndUpdate(
+        todoId,
+        {
+          title: req.body.title,
+          description: req.body.description,
+          completed: req.body.completed,
+        },
+        { new: true }
+      );
+      if (!updatedTodo) {
+        return res.json.status(500).json({ message: "Todo not found" });
+      }
+      res.json(updatedTodo);
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: "Server not found" });
+    }
+  },
 
-function updateTodoById(req, res) {
-  const todoId = parseInt(req.params.id);
-  const todo = todosModel.find((item) => item.id === todoId);
-  if (todo) {
-    todo.title = req.body.title || todo.title;
-    todo.description = req.body.description || todo.description;
-    todo.completed =
-      req.body.completed !== undefined ? req.body.completed : todo.completed;
-    res.json(todo);
-  } else {
-    res.status(404).json({ message: "todos not found" });
-  }
-}
-
-function deleteTodoById(req, res) {
-  const todoId = parseInt(req.params.id);
-  const index = todosModel.findIndex((item) => item.id === todoId);
-  if (index !== -1) {
-    todosModel.splice(index, 1);
-    res.json({ message: "todos deleted" });
-  } else {
-    res.status(400).json({ message: "todos not found " });
-  }
-}
-
-export default {
-  getAllTodos,
-  getTodoById,
-  createTodo,
-  updateTodoById,
-  deleteTodoById,
+  delete: async (req, res) => {
+    try {
+      const todoId = req.params.id;
+      const deleteTodo = await todosModel.findByIdAndDelete(todoId);
+      if (!deleteTodo) {
+        return res.status(404).json({message: 'todo not found'});
+      }
+    } catch (error) {
+      console.error(error);
+      res.status(500).json({ message: "Server Error" });
+    }
+  },
 };
+
+export default todoController;
